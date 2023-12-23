@@ -1,34 +1,35 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[71]:
+# In[ ]:
 
 
 # Anwendung von NLP-Techniken
 
 # Import der erforderlichen Bibliotheken
-import nltk
-nltk.download('punkt')
 import pandas as pd
 import numpy as np
-# Laden der Daten (csv.-Datei). Der Pfad muss entsprechend angepasst werden
-df = pd.read_csv("C:\\Users\\TC\\Desktop\\rows.csv")
+import nltk
+nltk.download('punkt')
+
+# Laden der Daten (csv.-Datei). Möglichst die Datei in selben Ordner wie den Programmcode legen
+# Ansonsten Pfad evtl. entsprechend anpassen
+df = pd.read_csv("rows.csv", low_memory=False)
 df.shape
 
-# Es erscheint eine Warnung da gemischte Datentypen in den Spalten vorhanden sind, diese kann hier aber ignoriert werden
-# Alternativ entsprechend den Vorschlägen behandeln, was wir hier aber nicht tun
+# Es erscheint eine Warnung welche hier ignoriert werden kann
 
 
-# In[72]:
+# In[ ]:
 
 
-# Der Datensatz besteht aus über ine Millionen Zeilen und 18 Spalten
+# Der Datensatz besteht aus über eine Millionen Zeilen und 18 Spalten
 # Anzeige der ersten 3 Zeilen der Daten und Transponieren des Ergebnisses
 df.head(3).T
 #print(df)
 
 
-# In[73]:
+# In[ ]:
 
 
 # Entfernung irrelevanter Daten wie Adressen oder Datum, um den Datensatz zu verkleinern
@@ -48,22 +49,22 @@ df1.shape
 # print(df)
 
 
-# In[74]:
+# In[ ]:
 
 
-# Der kleinere Datensatz besteht aus über 383000 Beschwerden und 2 Spalten 
-# Optional zur Visualisieurng der Daten
+# Der verkleinerte Datensatz besteht aus über 383000 Beschwerden und 2 Spalten 
+# Optional zur Visualisierung der Daten
 df1.head(5)
 
 
-# In[75]:
+# In[ ]:
 
 
-# Anzeige der Unterschiedlichen Kategorien (Product) aus dem Datensatz
+# Anzeige der Unterschiedlichen Kategorien (Product) aus dem Datensatz (optional)
 # pd.DataFrame(df.Product.unique()).values
 
 
-# In[76]:
+# In[ ]:
 
 
 # Anzeige der Anzahl der Kategorien (Product) aus dem Datensatz
@@ -71,14 +72,14 @@ count_unique_products = df.Product.nunique()
 print(count_unique_products)
 
 
-# In[77]:
+# In[ ]:
 
 
-# Hier die Anzeige er Zeilen mit den Kategorien
+# Hier die Anzeige der verschiedenen Kategorien und Anzahl der Beschwerden dazu in absteigender Reihenfolge
 df1['Product'].value_counts()
 
 
-# In[100]:
+# In[ ]:
 
 
 # Da der Datensatz noch sehr groß ist und mein System an seine Grenzen in Bezug auf die Rechenleistung kommt 
@@ -88,7 +89,7 @@ df2 = df1[df1['Product'] == 'Student loan']
 df2.head(5)
 
 
-# In[101]:
+# In[ ]:
 
 
 # Importieren der erforderlichen Bibliothek für das Stemming
@@ -99,32 +100,34 @@ from nltk.tokenize import word_tokenize
 # Erstellen des Stemmers
 stemmer = SnowballStemmer("english")
 
-# Definition einer Funktion, um das Stemming auf einen Satz anzuwenden
+# Definition einer Funktion, um das Stemming anzuwenden
 def stem_sentence(sentence):
     words = word_tokenize(sentence)
     stemmed_words = [stemmer.stem(word) for word in words]
     return ' '.join(stemmed_words)
 
 # Funktion auf die Spalte 'Complaint' anwenden
-df2.loc['Complaint'] = df2['Complaint'].apply(stem_sentence)
+df2 = df2.copy()
+df2['Complaint'] = df2['Complaint'].astype(str)
+df2['Complaint'] = df2['Complaint'].apply(stem_sentence)
 
+# Visualisierung des Ergebnisses
 df2.head(5)
-# 
 
 
-# In[80]:
+# In[ ]:
 
 
-# Da der Datensatz noch sehr groß ist und mein System an seine Grenzen in Bezug auf die Rechenleistung kommt 
-# wird eine Stichprobe von 10000 Einträgen gezogen, welche weiter verarbeitet wird
+# Als Alternative kann eine Stichprobe zur weiteren Verkleinerung des Datensazues gezogen werden
 # Falls genügend Rechenkapazität zur verfügung steht kann dieser Schritt übersprungen werden
 # und der Code muss entsprechend auf den Ursprungsdatensatz angepasst werden
-# df2 = df1.sample(10000, random_state=1).copy()
+# df2 = df2.copy(10000, random_state=1).copy()
 
 
-# In[81]:
+# In[ ]:
 
 
+# Alternative wenn alle Kategorien genutzt werden sollen,
 # Da es ähnliche Kategorien gibt, werden diese zusammengefasst und entsprechend umbenannt
 # df2.replace({'Product': 
   #            {'Credit reporting, credit repair services, or other personal consumer reports': 
@@ -138,30 +141,14 @@ df2.head(5)
   #          inplace= True)
 
 
-# In[82]:
+# In[ ]:
 
 
 # Anzeige der nun vorhandenen Kategorien
 # pd.DataFrame(df2.Product.unique())
 
 
-# In[83]:
-
-
-# Erstellen einer neuen Spalte, um die Kategorien zu kodieren
-#df2['category_id'] = df2['Product'].factorize()[0]
-#category_id_df = df2[['Product', 'category_id']].drop_duplicates()
-
-
-# Ein Wörterbuch wird erstellt
-#category_to_id = dict(category_id_df.values)
-#id_to_category = dict(category_id_df[['category_id', 'Product']].values)
-
-# Anzeigen des neuen Datenframes mittels beispielhafter Ausgabe der ersten 5 Zeilen 
-#df2.head()
-
-
-# In[88]:
+# In[ ]:
 
 
 # BOW-Vektorisierung
@@ -174,7 +161,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 # Erstellung einer Liste mit englische und aufgrund der Daten definierten Stoppwörtern
 
 stopwords = nltk.corpus.stopwords.words('english')
-newStopWords = ['xx','xxx','xxxx']
+newStopWords = ['xx','xxx','xxxx','00']
 stopwords.extend(newStopWords)
 
 # Entfernung der Stoppwörter aus der Liste für englische Stoppwörter (stop_words)
@@ -192,7 +179,7 @@ print(df2.columns)
 print("Jede der %d Beschwerden wird dargestellt durch %d Merkmale" %(bow_features.shape))
 
 
-# In[90]:
+# In[ ]:
 
 
 # TFIDF-Vektorisierung
@@ -221,7 +208,7 @@ print(df2.columns)
 print("Jede der %d Beschwerden wird dargestellt durch %d Merkmale" %(tfidf_features.shape))
 
 
-# In[91]:
+# In[ ]:
 
 
 # Wir sehen nun die Anzahl der Merkmale ist identisch, weil beide Methoden das Vokabular 
@@ -230,15 +217,15 @@ print("Jede der %d Beschwerden wird dargestellt durch %d Merkmale" %(tfidf_featu
 # Die Unterschiede zwischen TF-IDF und BoW liegen in der Art und Weise, wie sie die Werte für diese Merkmale berechnen
 
 
-# In[92]:
+# In[ ]:
 
 
-# Ausgabe der ersten 10 Merkmale für das erste Dokument jeweils für BOW und TF-IDF
-print("BoW Merkmale für das erste Dokument: ", bow_features[0][:10])
-print("TF-IDF Merkmale für das erste Dokument: ", tfidf_features[0][:10])
+# Ausgabe von 10 Merkmalen für das erste Dokument jeweils für BOW und TF-IDF
+print("BoW Merkmale für das erste Dokument: ", bow_features[20][:30])
+print("TF-IDF Merkmale für das erste Dokument: ", tfidf_features[20][:30])
 
 
-# In[93]:
+# In[ ]:
 
 
 # Nun erkennt man, dass in großen Textsammlungen viele Nullvektoren bei BOW und TF-IDF entstehen, weshalb nochmals oben
@@ -249,7 +236,7 @@ print("TF-IDF Merkmale für das erste Dokument: ", tfidf_features[0][:10])
 # gewichtet werden
 
 
-# In[94]:
+# In[ ]:
 
 
 # Anzeige der 100 Merkmale
@@ -257,7 +244,7 @@ print("BoW Merkmale: ", bow.get_feature_names_out())
 print("TF-IDF Merkmale: ", tfidf.get_feature_names_out())
 
 
-# In[102]:
+# In[ ]:
 
 
 # Die Themenanalyse wird mit den TF-IDF-Vektoren durchgeführt, da diese in der Regel bessere Ergebnisse als BOW liefert
@@ -274,7 +261,7 @@ df_tfidf = df_tfidf.sort_values('avg_tfidf', ascending=False)
 print(df_tfidf)
 
 
-# In[97]:
+# In[ ]:
 
 
 # Extraktion der 5 häufigsten Themen jeder Kategorie mittels sklearn LDA
@@ -292,21 +279,22 @@ lda_top=lda_model.fit_transform(tfidf_features)
 for i,topic in enumerate(lda_top[0]):
   print("Thema ",i,": ",topic*100,"%")
 feature_names = tfidf.get_feature_names_out()
+N=10
 for topic_idx, topic in enumerate(lda_model.components_):
   print("\n==> Thema %d:" %(topic_idx))
   print("  * Schlüsselwörter: ", " ".join([feature_names[i] for i in topic.argsort()[:-N - 1:-1]]))
 
 
-# In[103]:
+# In[ ]:
 
 
-# Ausgabe der beispielhaften Themenverteilung in Prozent der ersten 10 Beschwerden
-for i, topic_dist in enumerate(lda_top[:10]):
+# Ausgabe der beispielhaften Themenverteilung in Prozent der ersten 5 Beschwerden
+for i, topic_dist in enumerate(lda_top[:5]):
   print("\n==> Beschwerde %d:" %(i))
   print("  * Themenverteilung: ", topic_dist)
 
 
-# In[106]:
+# In[ ]:
 
 
 # Extraktion der 5 häufigsten Themen jeder Kategorie mittels sklearn LSA
@@ -323,7 +311,7 @@ for i, topic in enumerate(lsa_top[:5]):
     print("  * Themenverteilung: ", topic)
 
 
-# In[107]:
+# In[ ]:
 
 
 # Ausgabe der Schlüsselwörter für jedes Thema für LSA
@@ -331,10 +319,4 @@ feature_names = tfidf.get_feature_names_out()
 for topic_idx, topic in enumerate(lsa_model.components_[:5]):
     print("\n==> Thema %d:" %(topic_idx))
     print("  * Schlüsselwörter: ", " ".join([feature_names[i] for i in topic.argsort()[:-N - 1:-1]]))
-
-
-# In[ ]:
-
-
-
 
