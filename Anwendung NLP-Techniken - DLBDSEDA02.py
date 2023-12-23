@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import nltk
 nltk.download('punkt')
+nltk.download('stopwords')
 
 # Laden der Daten (csv.-Datei). Möglichst die Datei in selben Ordner wie den Programmcode legen
 # Ansonsten Pfad evtl. entsprechend anpassen
